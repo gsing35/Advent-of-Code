@@ -1,0 +1,57 @@
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Main {
+
+    public static boolean verify(String line, int excludeIdx) {
+        String[] tokens = line.trim().split(" ");
+        List<Integer> nums = new ArrayList<>();
+        for (String token : tokens) {
+            nums.add(Integer.parseInt(token));
+        }
+
+        if (excludeIdx != -1) {
+            nums.remove(excludeIdx);
+        }
+
+        boolean isSafe = true;
+        boolean increasing = nums.get(1) - nums.get(0) > 0;
+        for (int i = 1; i < nums.size(); i++) {
+            boolean safe;
+            if (increasing) {
+                safe = 1 <= nums.get(i) - nums.get(i - 1) && nums.get(i) - nums.get(i - 1) <= 3;
+            } else {
+                safe = 1 <= nums.get(i - 1) - nums.get(i) && nums.get(i - 1) - nums.get(i) <= 3;
+            }
+            isSafe = isSafe && safe;
+        }
+
+        if (excludeIdx == -1 && !isSafe) {
+            for (int i = 0; i < nums.size(); i++) {
+                isSafe = isSafe || verify(line, i);
+            }
+        }
+
+        return isSafe;
+    }
+
+    public static void main(String[] args) {
+        String fileName = "Task2.txt"; // Hardcoded file name
+
+        try {
+            List<String> reports = Files.readAllLines(Paths.get(fileName));
+            long safeCount = reports.stream()
+                .map(line -> verify(line, -1))
+                .filter(result -> result)
+                .count();
+
+            System.out.println(safeCount);
+        } catch (IOException e) {
+            System.err.println("Error reading the file: " + e.getMessage());
+            System.exit(1);
+        }
+    }
+}
